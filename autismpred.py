@@ -54,6 +54,85 @@ df = df.replace({'yes':1, 'no':0, '?':'Others', 'others':'Others'})
 #- - - - - - - - - -- - - - - - - - - - - - - -- - - - - - - - -- - -- - - - - 
 #EXPLORATORY DATA ANALYSIS
 
+#creats a pie chart -> learn data is highly imblanced, hard time predicting positive class
+#plt.pie(df['Class/ASD'].value_counts().values, autopct='%1.1f%%')
+#plt.show()
+
+
+#seperating the data based on the type
+ints = []
+objects = []
+floats = []
+
+for col in df.columns:
+    if df[col].dtype == int:
+        ints.append(col)
+    elif df[col].dtype == object:
+        objects.append(col)
+    else:
+        floats.append(col)
+
+
+#id column will contain a unique value for each of the rows and class/asd can be removed since we already analyzed 
+ints.remove('ID')
+ints.remove('Class/ASD')
+
+
+# Create a figure and an array of subplots with 4 rows and 3 columns, setting the overall size of the figure
+fig, axes = plt.subplots(4, 3, figsize=(15, 15))
+
+# Iterate through the columns in the 'ints' list using enumerate to get both the index and column name
+for i, col in enumerate(ints):
+    # Calculate the row and column indices for the current subplot
+    row_idx, col_idx = divmod(i, 3)
+    
+    # Check if the calculated row index is within the bounds of the 'axes' array
+    if row_idx < axes.shape[0]:
+        # Create a countplot for the current column 'col' from the dataframe 'df'
+        # The x-axis represents the categories in 'col', colored by the 'Class/ASD' column
+        # Place the countplot in the corresponding subplot determined by 'row_idx' and 'col_idx'
+        sb.countplot(data=df, x=col, hue='Class/ASD', ax=axes[row_idx, col_idx])
+
+# Adjust the layout of the subplots to prevent overlap
+plt.tight_layout()
+
+# Display the plots
+#plt.show()
+
+#-----> Can conclude that if the score of some indicator is 0 the chance of that person not having autsims is quite high 
+#except for the A10_score case
+
+#do the same this
+
+plt.subplots(figsize=(15, 30))
+
+for i, col in enumerate(objects):
+    plt.subplot(5, 3, i+1)
+    sb.countplot(data=df, x=col, hue='Class/ASD', dodge=True)
+    plt.xticks(rotation=60)
+
+plt.tight_layout()
+#plt.show()
+
+#------> Can conclude age_desc is the same for all the points, used_app is a source of data leakage because it's  useless
+# assume : males w autism is higher than females but not equal sample amount
+
+
+# Create a figure with a specific size
+plt.figure(figsize=(15, 5))
+
+# Create a countplot using Seaborn to visualize the distribution of 'country_of_res' categories,
+# with different colors representing the 'Class/ASD' categories
+sb.countplot(data=df, x='contry_of_res', hue='Class/ASD')
+
+# Rotate x-axis labels for better readability
+plt.xticks(rotation=90)
+
+# Display the plot
+plt.show()
+
+#---> Some places have 50% of yhe data have autism -> so geography plays a role in giving an idea 
+
 
 
 
