@@ -134,6 +134,34 @@ plt.show()
 #---> Some places have 50% of yhe data have autism -> so geography plays a role in giving an idea 
 
 
+plt.subplots(figsize = (15,5))
+
+for i, col in enumerate(floats):
+    plt.subplot(1,2,i+1)
+    sb.distplot(df[col])
+plt.tight_layout()
+#plt.show()
+
+#------> Both the charts are skewed left is positively and right is negatively
+
+plt.subplots(figsize = (15,5))
+
+for i, col in enumerate(floats):
+    plt.subplot(1,2,i+1)
+    sb.boxplot(df[col])
+plt.tight_layout()
+plt.show()
+
+#--> This showed us the outliers in the result column -> there is none so the shape will be the same value of the same total datapoints
+
+df = df[df['result']>-5]
+#print(df.shape)
+
+#- - - - - - - - - -- - - - - - - - - - - - - -- - - - - - - - -- - -- - - - - 
+#FEATURE ENGINEERING
+
+
+
 
 
 
