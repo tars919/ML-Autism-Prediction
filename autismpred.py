@@ -158,9 +158,163 @@ df = df[df['result']>-5]
 #print(df.shape)
 
 #- - - - - - - - - -- - - - - - - - - - - - - -- - - - - - - - -- - -- - - - - 
-#FEATURE ENGINEERING
+#FEATURE ENGINEERING: helps derive valuable features from existsing ones/ give deeper insights to the data
+
+#this function make groups by taking age as the parameter
+def convertAge(age):
+    if age <4:
+        return 'Todler'
+    elif age <12:
+        return 'Kid'
+    elif age <18:
+        return 'Teenager'
+    elif age <40:
+        return 'Young'
+    else:
+        return "Senior"
+    
+
+df['ageGroup'] = df['age'].apply(convertAge)
+
+sb.countplot(x=df['ageGroup'], hue=df['Class/ASD'])
+plt.show()
+
+#------> can  conclude that young and todler groups will have a lower chance of having autism need to divide blue by orange
+
+#summing up the clinical scores given from A1 to A10
+def add_feature(data):
+
+    #creating a column with all values zero
+    data['sum_score'] = 0
+    for col in data.loc[:,'A1_Score':'A10_Score'].columns:
+
+        #updating the 'sum_score' value with scores from A1 to A10
+        data['sum_score'] += data[col]
+
+    #creating a random data using the below three columns
+    data['ind'] = data['austim'] + data['used_app_before'] + data['jaundice']
+
+    return data
+
+df = add_feature(df)
+
+sb.countplot(x=df['sum_score'], hue=df['Class/ASD'])
+plt.show()
+
+#-----------> higher the sum score highter the chances of having autism is higher as well and similarly for lower sum scores that are for less that 5 it is rare they have autism
 
 
+
+#applying log transformations to remove the skewness of the data
+
+df['age'] = df['age'].apply(lambda x: np.log(x))
+
+sb.distplot(df['age'])
+plt.show()
+
+#N-----> now there is no skew in the data
+
+def encode_labels(data):
+    for col in data.columns:
+
+        #here we check the datatype 
+        #if object then we encode it 
+
+        if data[col].dtype == 'object':
+            le = LabelEncoder()
+            data[col] = le.fit_transform(data[col])
+
+    return data
+
+#self calling
+df = encode_labels(df)
+
+#making a heatmap to visualize the correlation matrix
+plt.figure(figsize=(10,10))
+sb.heatmap(df.corr() > 0.8, annot=True, cbar=False)
+plt.show()
+
+#-----> can conclude that there is only one highlt correlated features which we will remove before training the model on this data
+#- - - - - - - - - -- - - - - - - - - - - - - -- - - - - - - - -- - -- - - - - 
+
+#MODEL TRAINING: here we will separate the features and target variable and split them into training and the testing data by using which performs sbest ofn validation data
+
+removal = ['ID','age_desc', 'used_app_before','austim']
+features = df.drop(removal + ['Class/ASD'], axis=1)
+target = df['Class/ASD']
+
+#splitting the data
+#normalizing the data to obtain stable and fast training 
+
+
+X_train, X_val, Y_train, Y_val = train_test_split(features, target, test_size = 0.2, random_state=10)
+
+#as the data was highly imbalanced we will balance it by adding repetitive rows of minority class
+ros = RandomOverSampler(sampling_strategy='minority',random_state=0)
+X, Y = ros.fit_resample(X_train, Y_train)
+#----> (992,20) (992,)
+#print(X.shape, Y.shape)
+
+
+#normalizing the features for stable and fast training
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+X_val = scaler.transform(X_val)
+
+#now training some state of the art mlmodels and compare to see which fits better with our data
+models = [LogisticRegression(), XGBClassifier(), SVC(kernel='rbf')]
+
+for model in models:
+    model.fit(X,Y)
+
+    print(f'{model} : ')
+    print('Training Accuracy: ', metrics.roc_auc_score(Y, model.predict(X)))
+    print('Validation Accuracy: ', metrics.roc_auc_score(Y_val, model.predict(X_val)))
+    print()
+
+#--------> from these scores we can see that logistic regression and SVC have lower numbers so they perform better bc there is less difference between the validation and training data
+
+# Assuming models[0] is your trained classifier model and X_val, Y_val are your validation data
+# Generate predictions using the trained model
+predictions = models[0].predict(X_val)
+
+# Compute the confusion matrix using the true labels (Y_val) and predictions
+cm = confusion_matrix(Y_val, predictions)
+
+# Print or visualize the confusion matrix as needed
+print("Confusion Matrix:")
+print(cm)
+
+# Optionally, you can plot the confusion matrix
+plt.figure(figsize=(8, 6))
+sb.heatmap(cm, annot=True, fmt="d", cmap="Blues")
+plt.title("Confusion Matrix")
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+plt.show()
+
+
+#######------> NOW to calculate the actual accuracy percentage of the model 
+#____________________________________________________________________
+
+# Calculate accuracy from the confusion matrix
+accuracy = accuracy_score(Y_val, predictions)
+
+#print out the actual accuracy percent and converts from decimal to percent
+print("Accuracy:", accuracy * 100, '%')
+
+
+
+
+
+
+#---------
+#CONCLUDE
+#---------
+#can conclude that if the score is blue then the chance of the not having autism is high except for some outlier cases
+#ML shows that geography also will give an idea 
+#the variety of graphs will allow us to learn different parts of information using a csv file 
+#this produces 84% accurate results
 
 
 
