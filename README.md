@@ -15,4 +15,17 @@ Needed imports:
 - XGBoost
 - Imblearn
 
-- 
+- Seaborn
+
+
+
+#INFO
+# - Go to kaggle import the dataset and save it as train.csv
+# - To find the dataset search A1_score and it should come up -> autism spectrum prediction challenge
+# - Many print statments that are used to draw conclusions are commented out and organized in sections
+# - Add print statements to test parts of the code when needed
+# - can input another csv file for analyzing data
+
+
+#Notes
+# - Don't forget brackets in print statements when it's needed 
